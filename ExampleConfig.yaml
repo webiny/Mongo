@@ -16,5 +16,6 @@ Mongo:
             Arguments: [127.0.0.1:27017, webiny, null, null, '']
     Bridges:
         Mongo: \Webiny\Component\Mongo\Bridge\Purekid\Mongodm
+    # You don't need this part if you are using Composer autoload.
     ClassLoader:
         Purekid: '/var/www/vendors/Purekid/Mongodm'
