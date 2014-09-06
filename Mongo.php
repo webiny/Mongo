@@ -42,9 +42,6 @@ class Mongo
                 ]
             ]
         ],
-        'ClassLoader' => [
-            'Purekid' => '../../Purekid/Mongodm'
-        ],
         'Bridges'     => [
             'Mongo' => '\Webiny\Component\Mongo\Bridge\Purekid\Mongodm'
         ]
