@@ -8,8 +8,8 @@
 namespace Webiny\Component\Mongo\Bridge\Purekid;
 
 use Purekid\Mongodm\MongoDB;
+use Webiny\Component\Mongo\Bridge\MongoInterface;
 use Webiny\Component\StdLib\StdLibTrait;
-
 
 /**
  * Database adapter.
