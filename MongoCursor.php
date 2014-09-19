@@ -19,17 +19,12 @@ class MongoCursor implements \Iterator
      */
     private $_cursor;
 
-    /**
-     * Base constructor.
-     *
-     * @param \MongoCursor $cursor
-     */
     public function __construct(\MongoCursor $cursor)
     {
         $this->_cursor = $cursor;
     }
 
-    public function __call($name, $arguments)
+    function __call($name, $arguments)
     {
         return call_user_func([
                                   $this->_cursor,

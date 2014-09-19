@@ -8,7 +8,6 @@
 namespace Webiny\Component\Mongo;
 
 use Webiny\Component\ServiceManager\ServiceManager;
-use Webiny\Component\ServiceManager\ServiceManagerException;
 
 /**
  * Trait for Mongo component.
@@ -21,14 +20,9 @@ trait MongoTrait
      * @param string $database Mongo service name (Default: Webiny)
      *
      * @return Mongo
-     * @throws \Webiny\Component\ServiceManager\ServiceManagerException
      */
     protected static function mongo($database = 'Webiny')
     {
-        try {
-            return ServiceManager::getInstance()->getService('Mongo.' . $database);
-        } catch (ServiceManagerException $e) {
-            throw $e;
-        }
+        return ServiceManager::getInstance()->getService('Mongo.' . $database);
     }
 }

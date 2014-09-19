@@ -19,17 +19,12 @@ class MongoCollection
      */
     private $_collection;
 
-    /**
-     * Base constructor.
-     *
-     * @param \MongoCollection $collection
-     */
     public function __construct(\MongoCollection $collection)
     {
         $this->_collection = $collection;
     }
 
-    public function __call($name, $arguments)
+    function __call($name, $arguments)
     {
         return call_user_func([
                                   $this->_collection,
@@ -38,12 +33,12 @@ class MongoCollection
         );
     }
 
-    public function __get($name)
+    function __get($name)
     {
         return $this->_collection->$name;
     }
 
-    public function __set($name, $value)
+    function __set($name, $value)
     {
         $this->_collection->$name = $value;
     }

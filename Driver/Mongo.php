@@ -5,55 +5,53 @@
  * @copyright Copyright Webiny LTD
  */
 
-namespace Webiny\Component\Mongo\Bridge\Purekid;
+namespace Webiny\Component\Mongo\Driver;
 
-use Purekid\Mongodm\MongoDB;
-use Webiny\Component\Mongo\Bridge\MongoInterface;
+use MongoClient;
+use MongoDB;
+use Webiny\Component\Mongo\MongoInterface;
 use Webiny\Component\StdLib\StdLibTrait;
 
+
 /**
- * Database adapter.
- *
- * @package Webiny\Component\Mongo\Bridge\Purekid
+ * Database
+ * @package Webiny\Component\Mongo\Driver
  */
-class Mongodm implements MongoInterface
+class Mongo implements MongoInterface
 {
     use StdLibTrait;
 
     /**
      * @var MongoDB
      */
-    private $_instance = null;
+    private $_db = null;
 
     /**
-     * Base construct.
-     * Create a connection to Mongodb database.
-     *
-     * @param string $host     Mongodb host.
-     * @param string $database Database name.
-     * @param string $user     Database username.
-     * @param string $password Database password.
-     * @param array  $options  Additional options.
-     *
-     * @internal param string $collectionPrefix Collection prefix.
+     * @var MongoClient
      */
+    private $_connection = null;
+
     public function connect($host, $database, $user = null, $password = null, array $options = [])
     {
         $config = [
-            'connection' => [
-                'hostnames' => $host,
-                'database'  => $database,
-                'options'   => $options
-            ]
+            'connect' => true
         ];
 
         if (!$this->isNull($user) && !$this->isNull($password)) {
-            $config['connection']['username'] = $user;
-            $config['connection']['password'] = $password;
+            $config['username'] = $user;
+            $config['password'] = $password;
         }
 
-        $this->_instance = MongoDB::instance($database, $config);
-        $this->_instance->connect();
+        $config = $this->arr($config)->merge($options)->val();
+
+        $server = 'mongodb://' . $host;
+        try {
+            $this->_connection = new MongoClient($server, $config);
+            $this->_db = $this->_connection->selectDB($database);
+        } catch (\MongoException $e) {
+
+        }
+
     }
 
     /**
@@ -65,7 +63,7 @@ class Mongodm implements MongoInterface
      */
     public function getCollectionNames($includeSystemCollections = false)
     {
-        return $this->_instance->getDB()->getCollectionNames($includeSystemCollections);
+        return $this->_db->getCollectionNames($includeSystemCollections);
     }
 
     /**
@@ -79,7 +77,9 @@ class Mongodm implements MongoInterface
      */
     public function insert($collectionName, array $data, $options = [])
     {
-        return $this->_instance->insert($collectionName, $data, $options);
+        $this->_getCollection($collectionName)->insert($data, $options);
+
+        return $data;
     }
 
     /**
@@ -95,7 +95,9 @@ class Mongodm implements MongoInterface
      */
     public function group($collectionName, $keys, array $initial, $reduce, array $condition = [])
     {
-        return $this->_instance->group($collectionName, $keys, $initial, $reduce, $condition);
+        $reduce = new \MongoCode($reduce);
+
+        return $this->_getCollection($collectionName)->group($keys, $initial, $reduce, $condition);
     }
 
     /**
@@ -107,7 +109,7 @@ class Mongodm implements MongoInterface
      */
     public function getReference(array $ref)
     {
-        return $this->_instance->getRef($ref);
+        return $this->_db->getDBRef($ref);
     }
 
     /**
@@ -121,7 +123,7 @@ class Mongodm implements MongoInterface
      */
     public function ensureIndex($collectionName, $keys, $options = [])
     {
-        return $this->_instance->ensure_index($collectionName, $keys, $options);
+        return $this->_getCollection($collectionName)->ensureIndex($keys, $options);
     }
 
     /**
@@ -134,7 +136,7 @@ class Mongodm implements MongoInterface
      */
     public function execute($code, array $args = [])
     {
-        return $this->_instance->execute($code, $args);
+        return $this->_db->execute($code, $args);
     }
 
     /**
@@ -144,26 +146,28 @@ class Mongodm implements MongoInterface
      * @param array  $query          query
      * @param array  $fields         fields
      *
+     * @see http://php.net/manual/en/mongocollection.find.php
+     *
      * @return mixed
      */
     public function find($collectionName, array $query = [], array $fields = [])
     {
-        return $this->_instance->find($collectionName, $query, $fields);
+        return $this->_getCollection($collectionName)->find($query, $fields);
     }
 
     /**
      * Create collection
      *
-     * @param string $name   name
+     * @param string $name name
      * @param bool   $capped Enables a capped collection. To create a capped collection, specify true. If you specify true, you must also set a maximum size in the size field.
-     * @param int    $size   Specifies a maximum size in bytes for a capped collection. The size field is required for capped collections. If capped is false, you can use this field to preallocate space for an ordinary collection.
-     * @param int    $max    The maximum number of documents allowed in the capped collection. The size limit takes precedence over this limit. If a capped collection reaches its maximum size before it reaches the maximum number of documents, MongoDB removes old documents. If you prefer to use this limit, ensure that the size limit, which is required, is sufficient to contain the documents limit.
+     * @param int    $size Specifies a maximum size in bytes for a capped collection. The size field is required for capped collections. If capped is false, you can use this field to preallocate space for an ordinary collection.
+     * @param int    $max The maximum number of documents allowed in the capped collection. The size limit takes precedence over this limit. If a capped collection reaches its maximum size before it reaches the maximum number of documents, MongoDB removes old documents. If you prefer to use this limit, ensure that the size limit, which is required, is sufficient to contain the documents limit.
      *
      * @return string|null
      */
     public function createCollection($name, $capped = false, $size = 0, $max = 0)
     {
-        return $this->_instance->create_collection($name, $capped, $size, $max);
+        return $this->_db->createCollection($name, $capped, $size, $max);
     }
 
     /**
@@ -175,7 +179,7 @@ class Mongodm implements MongoInterface
      */
     public function dropCollection($collectionName)
     {
-        return $this->_instance->drop_collection($collectionName);
+        return $this->_db->dropCollection($collectionName);
     }
 
     /**
@@ -187,7 +191,7 @@ class Mongodm implements MongoInterface
      */
     public function command(array $data)
     {
-        return $this->_instance->command($data);
+        return $this->_db->command($data);
     }
 
     /**
@@ -199,7 +203,7 @@ class Mongodm implements MongoInterface
      */
     public function distinct(array $data)
     {
-        return $this->_instance->distinct($data);
+        return $this->_db->command($data);
     }
 
     /**
@@ -213,7 +217,7 @@ class Mongodm implements MongoInterface
      */
     public function findOne($collectionName, array $query = [], array $fields = [])
     {
-        return $this->_instance->find_one($collectionName, $query, $fields);
+        return $this->_getCollection($collectionName)->findOne($query, $fields);
     }
 
     /**
@@ -226,7 +230,7 @@ class Mongodm implements MongoInterface
      */
     public function count($collectionName, array $query = [])
     {
-        return $this->_instance->count($collectionName, $query);
+        return $this->_getCollection($collectionName)->count($query);
     }
 
     /**
@@ -236,11 +240,13 @@ class Mongodm implements MongoInterface
      * @param array  $criteria       criteria
      * @param array  $options        options
      *
+     * @see http://php.net/manual/en/mongocollection.remove.php
+     *
      * @return mixed
      */
     public function remove($collectionName, array $criteria, $options = [])
     {
-        return $this->_instance->remove($collectionName, $criteria, $options);
+        return $this->_getCollection($collectionName)->remove($criteria, $options);
     }
 
     /**
@@ -250,40 +256,60 @@ class Mongodm implements MongoInterface
      * @param array  $data           data
      * @param array  $options        options
      *
-     * @internal param array $a a
+     * @see http://php.net/manual/en/mongocollection.save.php
+     *
      * @return mixed
      */
     public function save($collectionName, array $data, $options = [])
     {
-        return $this->_instance->save($collectionName, $data, $options);
+        return $this->_getCollection($collectionName)->save($data, $options);
     }
 
     /**
+     * Aggregate
+     *
+     * @param array $collectionName
      * @param array $options
+     *
+     * @see http://php.net/manual/en/mongocollection.aggregate.php
      *
      * @return array
      */
-    public function aggregate(array $options)
+    public function aggregate($collectionName, array $options = [])
     {
+        $collection = $this->_getCollection($collectionName);
+
         return call_user_func_array([
-                                        $this->_instance,
+                                        $collection,
                                         'aggregate'
                                     ], $options
         );
     }
 
     /**
-     * update
+     * Update
      *
      * @param string $collectionName collection name
      * @param array  $criteria       criteria
      * @param array  $newObj         new obj
      * @param array  $options        options
      *
+     * @see http://php.net/manual/en/mongocollection.update.php
+     *
      * @return mixed
      */
     public function update($collectionName, array $criteria, array $newObj, $options = [])
     {
-        return $this->_instance->update($collectionName, $criteria, $newObj, $options);
+        return $this->_getCollection($collectionName)->update($criteria, $newObj, $options);
+    }
+
+    /**
+     * @param $collection
+     *
+     * @return \MongoCollection
+     */
+    private function _getCollection($collection)
+    {
+        return $this->_connection->selectCollection($this->_db, $collection);
     }
 }

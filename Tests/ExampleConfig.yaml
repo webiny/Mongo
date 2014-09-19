@@ -14,5 +14,4 @@ Mongo:
         Webiny:
             Class: \Webiny\Component\Mongo\Mongo
             Arguments: [127.0.0.1:27017, webiny, null, null, '']
-    Bridges:
-        Mongo: \Webiny\Component\Mongo\Bridge\Purekid\Mongodm
+    Driver: \Webiny\Component\Mongo\Driver\Mongo

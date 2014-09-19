@@ -18,7 +18,7 @@ class MongoException extends ExceptionAbstract
 
     const SOME_ERROR = 101;
 
-    protected static $_messages = [
+    static protected $_messages = [
         101 => 'Some error occured.'
     ];
 }

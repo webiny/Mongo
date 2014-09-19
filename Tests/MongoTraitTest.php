@@ -16,12 +16,12 @@ class MongoTraitTest extends \PHPUnit_Framework_TestCase
 
     const CONFIG = 'ExampleConfig.yaml';
 
-    public function setUp()
+    function setUp()
     {
         Mongo::setConfig(realpath(__DIR__ . '/' . self::CONFIG));
     }
 
-    public function testMongo()
+    function testMongo()
     {
         $this->assertInstanceOf('\Webiny\Component\Mongo\Mongo', $this->mongo());
     }
