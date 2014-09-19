@@ -21,7 +21,7 @@ class MongoTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider driverSet
      */
-    public function testConstructor($mongo)
+    function testConstructor($mongo)
     {
         $this->assertInstanceOf('Webiny\Component\Mongo\Mongo', $mongo);
     }
@@ -29,7 +29,7 @@ class MongoTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider driverSet
      */
-    public function testMongo(Mongo $mongo)
+    function testMongo(Mongo $mongo)
     {
         $collection = 'TestCollection';
         $mongo->dropCollection($collection);
@@ -75,7 +75,7 @@ class MongoTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(in_array($collection, $mongo->getCollectionNames()));
     }
 
-    public function driverSet()
+    function driverSet()
     {
         Mongo::setConfig(realpath(__DIR__ . '/' . self::CONFIG));
 

@@ -29,38 +29,25 @@ class Mongo
     private $_collectionPrefix = '';
 
     private static $_defaultConfig = [
-        'Database'    => 'Webiny',
-        'Services'    => [
+        'Database' => 'Webiny',
+        'Services' => [
             'Webiny' => [
                 'Class'     => '\Webiny\Component\Mongo\Mongo',
                 'Arguments' => [
                     '127.0.0.1:27017',
-                    'Webiny',
+                    'webiny',
                     null,
                     null,
                     ''
                 ]
             ]
         ],
-        'Bridges'     => [
-            'Mongo' => '\Webiny\Component\Mongo\Bridge\Purekid\Mongodm'
-        ]
+        'Driver'   => '\Webiny\Component\Mongo\Driver\Webiny'
     ];
 
-    /**
-     * Base construct.
-     * Create a connection to Mongodb database.
-     *
-     * @param string $host Mongodb host.
-     * @param string $database Database name.
-     * @param string $user Database username.
-     * @param string $password Database password.
-     * @param string $collectionPrefix Collection prefix.
-     * @param array  $options Additional options.
-     */
     public function __construct($host, $database, $user = null, $password = null, $collectionPrefix = '', $options = [])
     {
-        $mongoBridge = $this->getConfig()->get('Bridges.Mongo', '\Webiny\Component\Mongo\Bridge\Purekid\Mongodm');
+        $mongoBridge = $this->getConfig()->get('Driver', '\Webiny\Component\Mongo\Driver\Mongo');
         $this->_driver = new $mongoBridge();
         $this->_driver->connect($host, $database, $user, $password, $options);
         $this->_collectionPrefix = $collectionPrefix;

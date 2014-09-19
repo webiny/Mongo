@@ -1,14 +1,11 @@
 <?php
+
+namespace Webiny\Component\Mongo;
+
 /**
  * Webiny Framework (http://www.webiny.com/framework)
  *
  * @copyright Copyright Webiny LTD
- */
-namespace Webiny\Component\Mongo;
-
-/**
- * Interface MongoInterface
- * @package Webiny\Component\Mongo
  */
 interface MongoInterface
 {
@@ -214,13 +211,14 @@ interface MongoInterface
      * Returns the result of the aggregation as an array.<br>
      * The ok will be set to 1 on success, 0 on failure.
      *
+     * @param       $collectionName
      * @param array $options
      *
      * @see http://php.net/manual/en/mongocollection.aggregate.php
      *
      * @return array
      */
-    public function aggregate(array $options);
+    public function aggregate($collectionName, array $options);
 
     /**
      * Update document<br>
