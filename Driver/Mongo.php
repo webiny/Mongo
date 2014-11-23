@@ -9,6 +9,7 @@ namespace Webiny\Component\Mongo\Driver;
 
 use MongoClient;
 use MongoDB;
+use Webiny\Component\Mongo\MongoException;
 use Webiny\Component\Mongo\MongoInterface;
 use Webiny\Component\StdLib\StdLibTrait;
 
@@ -37,7 +38,7 @@ class Mongo implements MongoInterface
             'connect' => true
         ];
 
-        if (!$this->isNull($user) && !$this->isNull($password)) {
+        if(!$this->isNull($user) && !$this->isNull($password)) {
             $config['username'] = $user;
             $config['password'] = $password;
         }
@@ -49,7 +50,7 @@ class Mongo implements MongoInterface
             $this->_connection = new MongoClient($server, $config);
             $this->_db = $this->_connection->selectDB($database);
         } catch (\MongoException $e) {
-
+            throw new MongoException($e->getMessage());
         }
 
     }
@@ -67,7 +68,19 @@ class Mongo implements MongoInterface
     }
 
     /**
-     * Insert data into collection
+     * Get collection indexes
+     *
+     * @param string $collectionName Collection name
+     *
+     * @return array
+     */
+    public function getIndexInfo($collectionName){
+        return $this->_getCollection($collectionName)->getIndexInfo();
+    }
+
+    /**
+     * Insert data into collection<br>
+     * Inserted document <b>_id</b> is added to $data by reference.
      *
      * @param string $collectionName
      * @param array  $data
@@ -77,9 +90,7 @@ class Mongo implements MongoInterface
      */
     public function insert($collectionName, array $data, $options = [])
     {
-        $this->_getCollection($collectionName)->insert($data, $options);
-
-        return $data;
+        return $this->_getCollection($collectionName)->insert($data, $options);
     }
 
     /**
@@ -127,6 +138,36 @@ class Mongo implements MongoInterface
     }
 
     /**
+     * Delete index
+     *
+     * @param string $collectionName Collection name
+     * @param array  $index          Index to delete
+     *
+     * @see http://php.net/manual/en/mongocollection.deleteindex.php
+     *
+     * @return array
+     */
+    public function deleteIndex($collectionName, $index)
+    {
+        return $this->_db->command([
+                                       "deleteIndexes" => $collectionName,
+                                       "index"         => $index,
+                                   ]);
+    }
+
+    /**
+     * Delete all indexes from given collection
+     *
+     * @param string $collectionName Collection name
+     *
+     * @return array
+     */
+    public function deleteAllIndexes($collectionName)
+    {
+        return $this->_getCollection($collectionName)->deleteIndexes();
+    }
+
+    /**
      * Execute
      *
      * @param string $code code
@@ -158,10 +199,10 @@ class Mongo implements MongoInterface
     /**
      * Create collection
      *
-     * @param string $name name
+     * @param string $name   name
      * @param bool   $capped Enables a capped collection. To create a capped collection, specify true. If you specify true, you must also set a maximum size in the size field.
-     * @param int    $size Specifies a maximum size in bytes for a capped collection. The size field is required for capped collections. If capped is false, you can use this field to preallocate space for an ordinary collection.
-     * @param int    $max The maximum number of documents allowed in the capped collection. The size limit takes precedence over this limit. If a capped collection reaches its maximum size before it reaches the maximum number of documents, MongoDB removes old documents. If you prefer to use this limit, ensure that the size limit, which is required, is sufficient to contain the documents limit.
+     * @param int    $size   Specifies a maximum size in bytes for a capped collection. The size field is required for capped collections. If capped is false, you can use this field to preallocate space for an ordinary collection.
+     * @param int    $max    The maximum number of documents allowed in the capped collection. The size limit takes precedence over this limit. If a capped collection reaches its maximum size before it reaches the maximum number of documents, MongoDB removes old documents. If you prefer to use this limit, ensure that the size limit, which is required, is sufficient to contain the documents limit.
      *
      * @return string|null
      */
@@ -263,27 +304,6 @@ class Mongo implements MongoInterface
     public function save($collectionName, array $data, $options = [])
     {
         return $this->_getCollection($collectionName)->save($data, $options);
-    }
-
-    /**
-     * Aggregate
-     *
-     * @param array $collectionName
-     * @param array $options
-     *
-     * @see http://php.net/manual/en/mongocollection.aggregate.php
-     *
-     * @return array
-     */
-    public function aggregate($collectionName, array $options = [])
-    {
-        $collection = $this->_getCollection($collectionName);
-
-        return call_user_func_array([
-                                        $collection,
-                                        'aggregate'
-                                    ], $options
-        );
     }
 
     /**

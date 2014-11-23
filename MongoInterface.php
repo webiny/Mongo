@@ -53,15 +53,6 @@ interface MongoInterface
     /**
      * Ensure index<br>
      * Returns an array containing the status of the index creation.
-     * <code>
-     * Array
-     *   (
-     *       [n] => 0
-     *       [connectionId] => 60
-     *       [err] =>
-     *       [ok] => 1
-     *   )
-     * </code>
      *
      * @param string $collectionName name
      * @param string $keys           keys
@@ -70,6 +61,43 @@ interface MongoInterface
      * @return array
      */
     public function ensureIndex($collectionName, $keys, $options = []);
+
+    /**
+     * Get reference
+     *
+     * @param array $ref ref
+     *
+     * @return \MongoDBRef
+     */
+    public function getReference(array $ref);
+
+    /**
+     * Get collection indexes
+     *
+     * @param string $collectionName Collection name
+     *
+     * @return array
+     */
+    public function getIndexInfo($collectionName);
+
+    /**
+     * Delete index from given collection
+     *
+     * @param string $collectionName Collection name
+     * @param string $index          Index name
+     *
+     * @return mixed
+     */
+    public function deleteIndex($collectionName, $index);
+
+    /**
+     * Delete all indexes from given collection
+     *
+     * @param string $collectionName Collection name
+     *
+     * @return array
+     */
+    public function deleteAllIndexes($collectionName);
 
     /**
      * Execute JavaScript code on the database server.<br>
@@ -205,20 +233,6 @@ interface MongoInterface
      * @return array|bool
      */
     public function save($collectionName, array $data, $options = []);
-
-    /**
-     * Aggregate documents<br>
-     * Returns the result of the aggregation as an array.<br>
-     * The ok will be set to 1 on success, 0 on failure.
-     *
-     * @param       $collectionName
-     * @param array $options
-     *
-     * @see http://php.net/manual/en/mongocollection.aggregate.php
-     *
-     * @return array
-     */
-    public function aggregate($collectionName, array $options);
 
     /**
      * Update document<br>

@@ -37,16 +37,16 @@ class MongoTest extends PHPUnit_Framework_TestCase
         // Test create collection
         $mongo->createCollection($collection);
         $collectionNames = $mongo->getCollectionNames();
-        $this->assertInternalType('array', $collectionNames);
         $this->assertContains($collection, $collectionNames);
 
         // Test insert data
         $data = ['name' => 'Webiny'];
-        $res = $mongo->insert($collection, $data);
+        $mongo->insert($collection, $data);
         $this->assertEquals(1, $mongo->count($collection));
+        $this->assertArrayHasKey('_id', $data);
 
         // Get new record ID
-        $id = $res['_id'];
+        $id = $data['_id'];
 
         // Test update and findOne
         $mongo->update($collection, ['_id' => $id], ['name' => 'Updated Webiny']);
@@ -72,7 +72,17 @@ class MongoTest extends PHPUnit_Framework_TestCase
 
         // Test drop collection
         $mongo->dropCollection($collection);
-        $this->assertFalse(in_array($collection, $mongo->getCollectionNames()));
+        $this->assertFalse(in_array($collection, $mongo->getCollectionNames()->toArray()));
+
+        // Test isMongoId()
+        $id = '12345678absdfgrtuierwe12';
+        $this->assertFalse($mongo->isMongoId($id));
+
+        $id = 'aaaabbbbcccc 11122223333';
+        $this->assertFalse($mongo->isMongoId($id));
+
+        $id = '543c1d846803fa76058b458b';
+        $this->assertTrue($mongo->isMongoId($id));
     }
 
     function driverSet()
