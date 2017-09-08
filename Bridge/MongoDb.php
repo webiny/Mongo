@@ -247,7 +247,7 @@ class MongoDb implements MongoInterface
      */
     public function find($collectionName, $filter = [], array $options = [])
     {
-        return $this->getCollection($collectionName)->find($filter, $options);
+        return $this->getCollection($collectionName)->find($filter, $options)->toArray();
     }
 
     /**
@@ -341,7 +341,7 @@ class MongoDb implements MongoInterface
      */
     public function listCollections(array $options = [])
     {
-        return $this->getDb()->listCollections($options);
+        return iterator_to_array($this->getDb()->listCollections($options));
     }
 
     /**
@@ -352,7 +352,7 @@ class MongoDb implements MongoInterface
      */
     public function listIndexes($collectionName, array $options = [])
     {
-        return $this->getCollection($collectionName)->listIndexes($options);
+        return iterator_to_array($this->getCollection($collectionName)->listIndexes($options));
     }
 
     /**
